@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物理クエスト Lv.4 ～共通テスト演習～</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Noto+Serif+JP:wght@300;400;700&display=swap" rel="stylesheet" crossorigin="anonymous">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --dark: #0d0a1a;
+    --deep: #130f2a;
+    --mid: #1e1842;
+    --card: #16123a;
+    --red: #c0392b;
+    --red-glow: #ff4444;
+    --green: #27ae60;
+    --green-glow: #44ff88;
+    --purple: #6c3483;
+    --accent: #9b59b6;
+    --text: #e8dcc8;
+    --text-dim: #a09880;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── 背景魔法陣 ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, #2a1a5a44 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 20% 80%, #1a0a3a33 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 80% 50%, #3a1a2a22 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 星背景 */
+  .stars {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  }
+  .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.1; } 50% { opacity: 0.8; }
+  }
+
+  /* ── レイアウト ── */
+  #app {
+    position: relative; z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  /* ── ヘッダー ── */
+  .header {
+    text-align: center;
+    padding: 30px 0 20px;
+    border-bottom: 1px solid #c9a84c44;
+    margin-bottom: 24px;
+  }
+  .header-title {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 30px #c9a84c88, 0 0 60px #c9a84c44;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+  }
+  .header-sub {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-top: 6px;
+    letter-spacing: 0.15em;
+  }
+
+  /* ── ステータスバー ── */
+  .status-bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .stat-block {
+    background: var(--card);
+    border: 1px solid #c9a84c33;
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .stat-value {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .hp-bar-wrap {
+    height: 6px;
+    background: #ffffff15;
+    border-radius: 3px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .hp-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), #ff6666);
+    border-radius: 3px;
+    transition: width 0.6s ease;
+    box-shadow: 0 0 8px var(--red-glow);
+  }
+  .xp-bar-wrap {
+    height: 6px;
+    background: #ffffff15;
+    border-radius: 3px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .xp-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--accent));
+    border-radius: 3px;
+    transition: width 0.6s ease;
+    box-shadow: 0 0 8px #9b59b688;
+  }
+  .hero-emblem {
+    text-align: center;
+  }
+  .hero-icon {
+    font-size: 3rem;
+    display: block;
+    filter: drop-shadow(0 0 12px #c9a84c88);
+  }
+  .hero-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+  }
+
+  /* ── クエストマップ ── */
+  .map-section { margin-bottom: 8px; }
+  .section-heading {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, #c9a84c33, transparent);
+  }
+
+  .quest-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .quest-card {
+    background: var(--card);
+    border: 1px solid #c9a84c22;
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .quest-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 2px 0 0 2px;
+  }
+  .quest-card.available::before { background: var(--gold); }
+  .quest-card.cleared::before { background: var(--green); }
+  .quest-card.locked::before { background: #444; }
+
+  .quest-card.available:hover {
+    border-color: #c9a84c66;
+    background: #1e1a45;
+    transform: translateX(3px);
+    box-shadow: 0 4px 24px #c9a84c1a;
+  }
+  .quest-card.locked { opacity: 0.5; cursor: not-allowed; }
+
+  .quest-icon { font-size: 2rem; flex-shrink: 0; }
+  .quest-info { flex: 1; }
+  .quest-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .quest-desc { font-size: 0.78rem; color: var(--text-dim); line-height: 1.5; }
+  .quest-badge {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-family: 'Cinzel', serif;
+    flex-shrink: 0;
+  }
+  .badge-available { background: #c9a84c22; color: var(--gold); border: 1px solid #c9a84c44; }
+  .badge-cleared { background: #27ae6022; color: #4dd980; border: 1px solid #27ae6044; }
+  .badge-locked { background: #44444422; color: #666; border: 1px solid #44444444; }
+
+  /* ── クイズ画面 ── */
+  .quiz-screen { display: none; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  .quest-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .back-btn {
+    background: none;
+    border: 1px solid #c9a84c44;
+    color: var(--text-dim);
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  .quest-title-bar {
+    flex: 1;
+  }
+  .quest-title-bar h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+  }
+  .progress-text {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .progress-bar-wrap {
+    height: 4px;
+    background: #ffffff10;
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px #c9a84c88;
+  }
+
+  /* 問題カード */
+  .question-card {
+    background: var(--card);
+    border: 1px solid #c9a84c33;
+    border-radius: 14px;
+    padding: 28px 24px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .question-card::before {
+    content: '⚔️';
+    position: absolute;
+    top: -14px; left: 20px;
+    font-size: 1.4rem;
+    filter: drop-shadow(0 0 8px #c9a84c);
+  }
+  .question-num {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    margin-bottom: 12px;
+  }
+  .question-text {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--text);
+  }
+  .question-formula {
+    background: #0d0a1a;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    margin: 14px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 1.1rem;
+    color: var(--gold-light);
+    font-style: italic;
+    letter-spacing: 0.05em;
+  }
+  .question-image-hint {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  /* 選択肢 */
+  .choices {
+    display: grid;
+    gap: 10px;
+  }
+  .choice-btn {
+    background: var(--mid);
+    border: 1px solid #c9a84c33;
+    color: var(--text);
+    padding: 14px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.92rem;
+    text-align: left;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .choice-btn:hover:not(:disabled) {
+    border-color: #c9a84c88;
+    background: #2a2558;
+    transform: translateX(4px);
+  }
+  .choice-btn:disabled { cursor: not-allowed; }
+  .choice-btn.correct {
+    background: #0d3320;
+    border-color: var(--green);
+    color: #4dd980;
+    box-shadow: 0 0 20px #27ae6033;
+  }
+  .choice-btn.wrong {
+    background: #3a0e0e;
+    border-color: var(--red);
+    color: #ff8888;
+    box-shadow: 0 0 20px #c0392b33;
+  }
+  .choice-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    color: var(--gold);
+    min-width: 22px;
+  }
+
+  /* フィードバック */
+  .feedback-box {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 16px;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .feedback-box.correct {
+    background: #0d3320;
+    border: 1px solid var(--green);
+    color: #4dd980;
+  }
+  .feedback-box.wrong {
+    background: #3a0e0e;
+    border: 1px solid var(--red);
+    color: #ff9999;
+  }
+  .feedback-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .next-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #c9a84c, #a07830);
+    border: none;
+    color: #0d0a1a;
+    padding: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-top: 16px;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px #c9a84c44;
+    display: none;
+  }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 28px #c9a84c66; }
+
+  /* ── クリア画面 ── */
+  .clear-screen {
+    display: none;
+    text-align: center;
+    animation: fadeIn 0.6s ease;
+    padding: 40px 20px;
+  }
+  .clear-icon {
+    font-size: 5rem;
+    display: block;
+    margin-bottom: 16px;
+    animation: bounce 0.6s ease;
+    filter: drop-shadow(0 0 20px #c9a84c);
+  }
+  @keyframes bounce {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .clear-title {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    color: var(--gold);
+    text-shadow: 0 0 30px #c9a84c88;
+    margin-bottom: 8px;
+  }
+  .clear-sub { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 24px; }
+  .clear-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .clear-stat {
+    background: var(--card);
+    border: 1px solid #c9a84c33;
+    border-radius: 10px;
+    padding: 14px 20px;
+    min-width: 90px;
+  }
+  .clear-stat-num {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    color: var(--gold);
+    display: block;
+  }
+  .clear-stat-label { font-size: 0.72rem; color: var(--text-dim); }
+  .clear-btn {
+    background: linear-gradient(135deg, #c9a84c, #a07830);
+    border: none;
+    color: #0d0a1a;
+    padding: 14px 32px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px #c9a84c44;
+  }
+  .clear-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 28px #c9a84c66; }
+
+  /* ── エフェクト ── */
+  .damage-flash {
+    position: fixed; inset: 0; z-index: 999;
+    background: #ff000033;
+    pointer-events: none;
+    animation: flash 0.5s ease;
+    opacity: 0;
+  }
+  .heal-flash {
+    position: fixed; inset: 0; z-index: 999;
+    background: #00ff8822;
+    pointer-events: none;
+    animation: flash 0.4s ease;
+    opacity: 0;
+  }
+  @keyframes flash {
+    0% { opacity: 1; } 100% { opacity: 0; }
+  }
+
+  .float-text {
+    position: fixed;
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    z-index: 1000;
+    pointer-events: none;
+    animation: floatUp 1.2s ease forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-80px) scale(1.3); }
+  }
+
+  .home-link {
+    display: inline-block;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    border: 1px solid #c9a84c33;
+    padding: 6px 14px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    transition: all 0.2s;
+  }
+  .home-link:hover { border-color: var(--gold); color: var(--gold); }
+
+  .map-screen { display: block; }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="damage-flash" id="damageFlash"></div>
+<div class="heal-flash" id="healFlash"></div>
+
+<div id="app">
+  <div class="header">
+    <a href="index.html" class="home-link">🏰 ワールドマップへ戻る</a>
+    <div class="header-title">⚔️ 物理クエスト ⚔️</div>
+    <div class="header-sub">～ Lv.4 共通テスト演習：最終決戦 ～</div>
+  </div>
+
+  <!-- ステータスバー -->
+  <div class="status-bar">
+    <div class="stat-block">
+      <div class="stat-label">HP</div>
+      <div class="stat-value" id="hpVal">100 / 100</div>
+      <div class="hp-bar-wrap"><div class="hp-bar" id="hpBar" style="width:100%"></div></div>
+    </div>
+    <div class="hero-emblem">
+      <span class="hero-icon" id="heroIcon">🧙</span>
+      <div class="hero-title" id="heroTitle">見習い魔法使い</div>
+    </div>
+    <div class="stat-block" style="text-align:right">
+      <div class="stat-label">XP</div>
+      <div class="stat-value" id="xpVal">0 XP</div>
+      <div class="xp-bar-wrap"><div class="xp-bar" id="xpBar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- マップ画面 -->
+  <div class="map-screen" id="mapScreen">
+    <div class="map-section">
+      <div class="section-heading">クエスト選択</div>
+      <div class="quest-list" id="questList"></div>
+    </div>
+  </div>
+
+  <!-- クイズ画面 -->
+  <div class="quiz-screen" id="quizScreen">
+    <div class="quest-header">
+      <button class="back-btn" onclick="goBack()">← マップへ</button>
+      <div class="quest-title-bar">
+        <h2 id="activeQuestName"></h2>
+        <div class="progress-text" id="progressText"></div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progressBar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="question-card" id="questionCard">
+      <div class="question-num" id="questionNum"></div>
+      <div class="question-text" id="questionText"></div>
+      <div class="question-formula" id="questionFormula" style="display:none"></div>
+    </div>
+
+    <div class="choices" id="choices"></div>
+    <div class="feedback-box" id="feedbackBox">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div id="feedbackText"></div>
+    </div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">次の問いへ ➤</button>
+  </div>
+
+  <!-- クリア画面 -->
+  <div class="clear-screen" id="clearScreen">
+    <span class="clear-icon" id="clearIcon">🏆</span>
+    <div class="clear-title" id="clearTitle">QUEST CLEAR!</div>
+    <div class="clear-sub" id="clearSub"></div>
+    <div class="clear-stats">
+      <div class="clear-stat">
+        <span class="clear-stat-num" id="clearCorrect">-</span>
+        <div class="clear-stat-label">正解数</div>
+      </div>
+      <div class="clear-stat">
+        <span class="clear-stat-num" id="clearXP">-</span>
+        <div class="clear-stat-label">獲得XP</div>
+      </div>
+      <div class="clear-stat">
+        <span class="clear-stat-num" id="clearRank">-</span>
+        <div class="clear-stat-label">評価</div>
+      </div>
+    </div>
+    <button class="clear-btn" onclick="goToMap()">マップへ戻る</button>
+  </div>
+</div>
+
+<script>
+// ── データ ──────────────────────────────────────────
+const QUESTS = [
+  {
+    id: 'q1',
+    name: '第一章：力学の総合演習',
+    icon: '🎯',
+    desc: '共通テスト頻出の力学問題。実験データの解釈や複合的な思考力が試される！',
+    xpReward: 50,
+    questions: [
+      {
+        text: '台車を斜面上で静かに離し、等加速度運動をする実験を行った。0.1秒ごとの速度が 0, 0.5, 1.0, 1.5 [m/s] であった。加速度はいくらか？',
+        choices: ['0.5 m/s²', '1.5 m/s²', '5 m/s²', '10 m/s²'],
+        answer: 2,
+        explanation: '加速度 = Δv/Δt = 0.5/0.1 = 5 m/s²。等間隔で速度が0.5ずつ増えているので等加速度運動です。'
+      },
+      {
+        text: '2 kg の物体Aと3 kg の物体Bが糸でつながれ、滑らかな水平面上にある。Aを 10 N で引くとき、糸の張力はいくらか？',
+        formula: '全体の加速度 a = F/(mA+mB)',
+        choices: ['4 N', '6 N', '10 N', '2 N'],
+        answer: 1,
+        explanation: 'まず全体の加速度 a = 10/(2+3) = 2 m/s²。Bだけに注目すると T = mB × a = 3 × 2 = 6 N。'
+      },
+      {
+        text: '水平投射された物体について正しいのはどれか？',
+        choices: [
+          '水平方向は等加速度運動、鉛直方向は等速運動',
+          '水平方向は等速運動、鉛直方向は自由落下（等加速度運動）',
+          '水平方向も鉛直方向も等速運動',
+          '水平方向も鉛直方向も等加速度運動'
+        ],
+        answer: 1,
+        explanation: '水平方向は力がはたらかないので等速運動。鉛直方向は重力による自由落下（a=g）。この2つの運動の合成が水平投射です。'
+      },
+      {
+        text: 'エレベーターが上向きに加速している間、体重計の表示はどうなるか？',
+        choices: [
+          '実際の体重より軽く表示される',
+          '実際の体重と同じ',
+          '実際の体重より重く表示される',
+          '0を表示する'
+        ],
+        answer: 2,
+        explanation: '上向き加速中は見かけの重力が大きくなる（N = m(g+a)）ため、体重計は実際より重く表示されます。'
+      },
+      {
+        text: '質量 m の物体を速さ v で鉛直に投げ上げた。最高点での力学的エネルギーを位置エネルギーで表すと？（地面を基準）',
+        choices: ['0', 'mgh（h は最高点の高さ）', '½mv²', 'mgh + ½mv²'],
+        answer: 2,
+        explanation: '最高点では v=0 なので運動エネルギーは0。力学的エネルギー保存より ½mv² = mgh。全て位置エネルギーに変換されています。'
+      }
+    ]
+  },
+  {
+    id: 'q2',
+    name: '第二章：熱・波の総合演習',
+    icon: '🌡️',
+    desc: '実験考察を含む熱と波の融合問題。データから結論を導く力を試される！',
+    xpReward: 50,
+    questions: [
+      {
+        text: '金属球（比熱 0.4 J/(g·℃), 質量 200 g, 温度 100℃）を 20℃ の水 100 g に入れた。平衡温度を求めよ。（水の比熱 4.2 J/(g·℃)）',
+        formula: 'mc(T₁-T) = mc(T-T₂)',
+        choices: ['約 27℃', '約 35℃', '約 50℃', '約 60℃'],
+        answer: 1,
+        explanation: '200×0.4×(100-T) = 100×4.2×(T-20) を解くと T ≈ 33℃。水の比熱が金属の10倍以上大きいため、平衡温度は水の温度にかなり近くなります。'
+      },
+      {
+        text: '気柱共鳴の実験で、閉管の第1共鳴点が管口から 17 cm の位置で観測された。音波の波長はいくらか？',
+        formula: '閉管の基本振動：L = λ/4',
+        choices: ['17 cm', '34 cm', '51 cm', '68 cm'],
+        answer: 3,
+        explanation: '閉管の第1共鳴点では L = λ/4。λ = 4L = 4 × 17 = 68 cm。開口端補正を考慮すると実際にはやや長くなります。'
+      },
+      {
+        text: '温度が上昇すると空気中の音速はどうなるか？',
+        choices: [
+          '遅くなる',
+          '変わらない',
+          '速くなる',
+          '温度には依存しない'
+        ],
+        answer: 2,
+        explanation: '音速は温度に比例して速くなります。約 331 + 0.6t [m/s]（t は温度[℃]）。夏は冬より音が速く伝わります。'
+      },
+      {
+        text: '熱機関の熱効率について、高熱源 800 K、低熱源 300 K のカルノー機関の理論最大効率は？',
+        formula: 'η = 1 - T₂/T₁',
+        choices: ['37.5%', '62.5%', '100%', '26.7%'],
+        answer: 1,
+        explanation: 'η = 1 - 300/800 = 1 - 0.375 = 0.625 = 62.5%。カルノー効率は理論上の最大値で、実際の機関はこれより低くなります。'
+      }
+    ]
+  },
+  {
+    id: 'q3',
+    name: '第三章：電気の総合演習',
+    icon: '🔌',
+    desc: '回路計算と電磁気の基本。共通テストで頻出の実験考察問題に挑め！',
+    xpReward: 50,
+    questions: [
+      {
+        text: '内部抵抗 1 Ω、起電力 6 V の電池に外部抵抗 5 Ω をつないだ。外部抵抗に流れる電流は？',
+        formula: 'I = E/(r+R)',
+        choices: ['1 A', '1.2 A', '6 A', '5 A'],
+        answer: 0,
+        explanation: 'I = 6/(1+5) = 6/6 = 1 A。電池の内部抵抗も回路の一部として計算に含める必要があります。'
+      },
+      {
+        text: '上の回路で、外部抵抗にかかる電圧（端子電圧）はいくらか？',
+        formula: 'V = E - Ir',
+        choices: ['6 V', '5 V', '1 V', '4 V'],
+        answer: 1,
+        explanation: 'V = IR = 1×5 = 5 V。または V = E-Ir = 6-1×1 = 5 V。内部抵抗のため起電力より低くなります。'
+      },
+      {
+        text: '電磁誘導について、コイルを貫く磁束が変化するとコイルに誘導起電力が生じる。この法則の名前は？',
+        choices: ['オームの法則', 'クーロンの法則', 'ファラデーの電磁誘導の法則', 'アンペールの法則'],
+        answer: 2,
+        explanation: 'ファラデーの電磁誘導の法則。磁束の変化が大きいほど、また変化が速いほど大きな起電力が生じます。'
+      },
+      {
+        text: '磁石をコイルに近づけると電流が流れた。磁石を遠ざけるとどうなるか？',
+        choices: [
+          '同じ向きの電流が流れる',
+          '逆向きの電流が流れる',
+          '電流は流れない',
+          '電流の大きさだけ変わる'
+        ],
+        answer: 1,
+        explanation: '磁束の変化が逆になるので、誘導電流の向きも逆になります（レンツの法則）。変化を妨げる方向に電流が流れます。'
+      },
+      {
+        text: '家庭のコンセントは交流 100 V（実効値）である。最大電圧はおよそいくらか？',
+        formula: 'V₀ = √2 × V（実効値）',
+        choices: ['100 V', '141 V', '200 V', '50 V'],
+        answer: 1,
+        explanation: 'V₀ = √2 × 100 ≈ 141 V。実効値は最大値の 1/√2 倍。交流は正弦波で変動しているため、実効値で表します。'
+      }
+    ]
+  },
+  {
+    id: 'q4',
+    name: '最終章：分野横断の究極問題',
+    icon: '💎',
+    desc: '力学・熱・波・電気を横断する総合問題。全ての知識を結集して最終決戦に挑め！',
+    xpReward: 60,
+    questions: [
+      {
+        text: '高さ 10 m から落下した 1 kg の物体が地面に衝突して停止した。全ての運動エネルギーが熱に変わったとすると、発生した熱量は？（g=10 m/s²）',
+        choices: ['10 J', '100 J', '1000 J', '50 J'],
+        answer: 1,
+        explanation: '位置エネルギー mgh = 1×10×10 = 100 J がすべて熱に変換。力学と熱力学の橋渡し問題です。'
+      },
+      {
+        text: '発電所で発電した電力を送電するとき、変圧器で電圧を10倍にすると、送電線での電力損失はどうなるか？',
+        formula: '損失 P = I²R, 電圧10倍 → 電流1/10',
+        choices: ['10倍になる', '1/10になる', '1/100になる', '変わらない'],
+        answer: 2,
+        explanation: '電圧を10倍にすると電流は1/10。損失 P=I²R なので (1/10)² = 1/100 に激減。力学のエネルギーと電気を組み合わせた重要な問題です。'
+      },
+      {
+        text: 'バネにつけた物体の振動で、振動の速さが最大になる位置はどこか？',
+        choices: [
+          '最も伸びた位置',
+          '最も縮んだ位置',
+          '自然長の位置（つり合いの位置）',
+          '伸びと縮みの中間'
+        ],
+        answer: 2,
+        explanation: 'つり合い位置ではバネの弾性エネルギーが最小で運動エネルギーが最大。力学とエネルギー保存と波（振動）の融合問題です。'
+      },
+      {
+        text: '太陽電池は何エネルギーを何エネルギーに変換しているか？',
+        choices: [
+          '熱エネルギー → 電気エネルギー',
+          '光エネルギー → 電気エネルギー',
+          '化学エネルギー → 電気エネルギー',
+          '運動エネルギー → 電気エネルギー'
+        ],
+        answer: 1,
+        explanation: '太陽電池は光（電磁波のエネルギー）を直接電気に変換する光電効果を利用しています。'
+      },
+      {
+        text: '物理基礎で学ぶエネルギー保存則の本質として最も適切なものは？',
+        choices: [
+          'エネルギーは常に運動エネルギーとして保存される',
+          'エネルギーは形を変えるが、その総量は変わらない',
+          'エネルギーは使うと消滅する',
+          'エネルギーは力を加えないと生まれない'
+        ],
+        answer: 1,
+        explanation: 'エネルギー保存則：エネルギーは形態を変換するが、総量は一定。力学的・熱・光・電気…全てのエネルギーの根底にある最も重要な原理です！'
+      }
+    ]
+  }
+];
+
+// ── 称号データ ──────────────────────────────
+const TITLES = [
+  { xp: 0,   icon: '🗡️', title: '挑戦者' },
+  { xp: 50,  icon: '🛡️', title: '共テの戦士' },
+  { xp: 100, icon: '⚜️', title: '理論の騎士' },
+  { xp: 160, icon: '🏆', title: '物理の英雄' },
+  { xp: 220, icon: '👑', title: '伝説の物理王' }
+];
+
+// ── 状態 ──────────────────────────────────
+let state = {
+  hp: 100,
+  maxHp: 100,
+  xp: 0,
+  clearedQuests: (function() { try { return JSON.parse(localStorage.getItem('pq4_cleared') || '[]'); } catch(e) { return []; } })(),
+  currentQuest: null,
+  currentQ: 0,
+  correctCount: 0,
+  earnedXP: 0
+};
+
+// ── 初期化 ────────────────────────────────
+function init() {
+  createStars();
+  renderMap();
+  updateStatus();
+}
+
+function createStars() {
+  const c = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 0.5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*100}%;
+      --d:${2+Math.random()*4}s;
+      --delay:-${Math.random()*4}s;
+    `;
+    c.appendChild(s);
+  }
+}
+
+function updateStatus() {
+  const hpPct = (state.hp / state.maxHp) * 100;
+  document.getElementById('hpBar').style.width = hpPct + '%';
+  document.getElementById('hpVal').textContent = `${state.hp} / ${state.maxHp}`;
+  document.getElementById('xpVal').textContent = `${state.xp} XP`;
+
+  const maxXP = 200;
+  document.getElementById('xpBar').style.width = Math.min(state.xp / maxXP * 100, 100) + '%';
+
+  // 称号
+  let title = TITLES[0];
+  for (const t of TITLES) { if (state.xp >= t.xp) title = t; }
+  document.getElementById('heroIcon').textContent = title.icon;
+  document.getElementById('heroTitle').textContent = title.title;
+}
+
+// ── マップ ────────────────────────────────
+function renderMap() {
+  const list = document.getElementById('questList');
+  list.innerHTML = '';
+
+  QUESTS.forEach((quest, i) => {
+    const cleared = state.clearedQuests.includes(quest.id);
+    const locked = i > 0 && !state.clearedQuests.includes(QUESTS[i-1].id);
+    const status = cleared ? 'cleared' : locked ? 'locked' : 'available';
+
+    const card = document.createElement('div');
+    card.className = `quest-card ${status}`;
+    if (!locked) card.onclick = () => startQuest(quest);
+
+    const badgeText = cleared ? 'CLEARED' : locked ? 'LOCKED' : 'AVAILABLE';
+    const badgeClass = cleared ? 'badge-cleared' : locked ? 'badge-locked' : 'badge-available';
+
+    card.innerHTML = `
+      <div class="quest-icon">${quest.icon}</div>
+      <div class="quest-info">
+        <div class="quest-name">${quest.name}</div>
+        <div class="quest-desc">${quest.desc}</div>
+      </div>
+      <div class="quest-badge ${badgeClass}">${badgeText}</div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ── クイズ開始 ────────────────────────────
+function startQuest(quest) {
+  state.currentQuest = quest;
+  state.currentQ = 0;
+  state.correctCount = 0;
+  state.earnedXP = 0;
+
+  document.getElementById('mapScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  document.getElementById('clearScreen').style.display = 'none';
+
+  document.getElementById('activeQuestName').textContent = quest.name;
+  showQuestion();
+}
+
+function showQuestion() {
+  const quest = state.currentQuest;
+  const q = quest.questions[state.currentQ];
+  const total = quest.questions.length;
+
+  document.getElementById('questionNum').textContent = `QUESTION ${state.currentQ + 1} / ${total}`;
+  document.getElementById('questionText').textContent = q.text;
+
+  const formulaEl = document.getElementById('questionFormula');
+  if (q.formula) {
+    formulaEl.textContent = q.formula;
+    formulaEl.style.display = 'block';
+  } else {
+    formulaEl.style.display = 'none';
+  }
+
+  // 進捗
+  const pct = (state.currentQ / total) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${state.currentQ} / ${total} 問クリア`;
+
+  // 選択肢
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  const labels = ['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'];
+  q.choices.forEach((ch, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = `<span class="choice-label">${labels[idx]}</span>${ch}`;
+    btn.onclick = () => answer(idx, btn);
+    choicesEl.appendChild(btn);
+  });
+
+  document.getElementById('feedbackBox').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+function answer(idx, btn) {
+  const q = state.currentQuest.questions[state.currentQ];
+  const allBtns = document.querySelectorAll('.choice-btn');
+  allBtns.forEach(b => b.disabled = true);
+
+  const feedback = document.getElementById('feedbackBox');
+  const nextBtn = document.getElementById('nextBtn');
+
+  if (idx === q.answer) {
+    btn.classList.add('correct');
+    feedback.className = 'feedback-box correct';
+    document.getElementById('feedbackTitle').textContent = '✨ 正解！ ';
+    document.getElementById('feedbackText').textContent = q.explanation;
+    state.correctCount++;
+    const gained = 10;
+    state.earnedXP += gained;
+    state.xp += gained;
+    showFloatText(`+${gained} XP`, '#4dd980', btn);
+    triggerFlash('heal');
+  } else {
+    btn.classList.add('wrong');
+    allBtns[q.answer].classList.add('correct');
+    feedback.className = 'feedback-box wrong';
+    document.getElementById('feedbackTitle').textContent = '💥 不正解…';
+    document.getElementById('feedbackText').textContent = q.explanation;
+    state.hp = Math.max(0, state.hp - 20);
+    showFloatText('-20 HP', '#ff4444', btn);
+    triggerFlash('damage');
+  }
+
+  feedback.style.display = 'block';
+  nextBtn.style.display = 'block';
+
+  // 最後の問題なら「結果へ」に変える
+  if (state.currentQ >= state.currentQuest.questions.length - 1) {
+    nextBtn.textContent = '結果を見る ➤';
+  } else {
+    nextBtn.textContent = '次の問いへ ➤';
+  }
+
+  updateStatus();
+}
+
+function nextQuestion() {
+  state.currentQ++;
+  if (state.currentQ >= state.currentQuest.questions.length) {
+    showClear();
+  } else {
+    showQuestion();
+  }
+}
+
+// ── クリア ────────────────────────────────
+function showClear() {
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('clearScreen').style.display = 'block';
+
+  const total = state.currentQuest.questions.length;
+  const correct = state.correctCount;
+  const pct = Math.round((correct / total) * 100);
+
+  let rank = 'C';
+  if (pct >= 100) rank = 'S';
+  else if (pct >= 80) rank = 'A';
+  else if (pct >= 60) rank = 'B';
+
+  let icon = '🏆';
+  if (rank === 'S') icon = '👑';
+  else if (rank === 'A') icon = '⭐';
+  else if (rank === 'B') icon = '🛡️';
+
+  document.getElementById('clearIcon').textContent = icon;
+
+  if (rank === 'S') {
+    document.getElementById('clearTitle').textContent = 'PERFECT CLEAR!';
+    document.getElementById('clearSub').textContent = '全問正解！伝説に名を刻んだ。';
+  } else if (rank === 'A') {
+    document.getElementById('clearTitle').textContent = 'QUEST CLEAR!';
+    document.getElementById('clearSub').textContent = '見事な戦いぶりだった！';
+  } else {
+    document.getElementById('clearTitle').textContent = 'QUEST CLEAR!';
+    document.getElementById('clearSub').textContent = 'まだ強くなれる。再挑戦して満点を目指せ！';
+  }
+
+  document.getElementById('clearCorrect').textContent = `${correct}/${total}`;
+  document.getElementById('clearXP').textContent = state.earnedXP;
+  document.getElementById('clearRank').textContent = rank;
+
+  // クリア記録 & ボーナスXP
+  if (!state.clearedQuests.includes(state.currentQuest.id)) {
+    state.clearedQuests.push(state.currentQuest.id);
+    try { localStorage.setItem('pq4_cleared', JSON.stringify(state.clearedQuests)); } catch(e) {}
+    state.xp += state.currentQuest.xpReward;
+  }
+
+  updateStatus();
+}
+
+function goBack() {
+  document.getElementById('mapScreen').style.display = 'block';
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('clearScreen').style.display = 'none';
+  renderMap();
+}
+
+function goToMap() {
+  goBack();
+}
+
+// ── エフェクト ────────────────────────────
+function triggerFlash(type) {
+  const el = document.getElementById(type === 'damage' ? 'damageFlash' : 'healFlash');
+  el.style.animation = 'none';
+  el.offsetHeight; // reflow
+  el.style.animation = 'flash 0.5s ease';
+}
+
+function showFloatText(text, color, nearEl) {
+  const el = document.createElement('div');
+  el.className = 'float-text';
+  el.textContent = text;
+  el.style.color = color;
+  el.style.textShadow = `0 0 20px ${color}`;
+
+  const rect = nearEl.getBoundingClientRect();
+  el.style.left = rect.left + rect.width / 2 - 40 + 'px';
+  el.style.top = rect.top - 10 + 'px';
+
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1300);
+}
+
+// ── 起動 ──────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  try { init(); } catch(e) { console.error('Init error:', e); }
+});
+</script>
+</body>
+</html>
